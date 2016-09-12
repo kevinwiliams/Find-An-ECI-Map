@@ -1,0 +1,50 @@
+@charset "utf-8";
+/* CSS Document */
+
+body {margin:0; padding:0; 
+	font-family: 'Open Sans', sans-serif;
+	/*font-family:Arial, Helvetica, sans-serif;*/
+	
+}
+a, a:visited{ text-decoration:none; color:#000;}
+a:hover { text-decoration:underline;}
+.map-link{ font-size:14px;}
+
+#map-side-bar{
+    margin-top: 20px;
+    padding: 10px;
+    background: #FFF;
+    height: 500px;
+    /* width: 745px; */
+}
+/*
+.map-location {
+    float: left;
+    padding-right: 15px;
+    width: 310px;
+    padding-bottom: 15px;
+}*/
+#button-next {
+    width: 25px;   
+    left:25px;
+    height:25px;
+	float:left;
+    /*position:absolute;*/
+   /* display: block;*/
+    background: url("http://i43.tinypic.com/25alqv7.png") 0px 0px ;
+   
+}
+#button-previous {
+    width: 25px;
+    height: 25px;
+	float:right;
+	/*left:125px;*/
+    /*position:absolute;*/
+    /*display: block;*/
+    background: url("http://i43.tinypic.com/25alqv7.png") 25px 0px ;
+    
+}
+.qp_disabled{
+    opacity: 0.8;
+}
+
