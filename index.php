@@ -7,7 +7,9 @@
 <link href="css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="css/style.css">
 </head>
-<?php require('db/system.php'); ?>
+<?php require('db/system.php'); 
+$eccgis = 'ecc_gis_data';
+?>
 
 <body onload="disableselect();">
 <?php
@@ -19,7 +21,7 @@
 <div class="container">
   <div class="content">
     <h1>Find An ECI</h1>
-    <p>You're ECI may not be listed as this map is currently under construction. Thanks for your patience.</p>
+    <p>Click on the map markers or the links below for more information on a selected ECI.</p>
     <div  style="height:400px; background-color:#ccc; margin:30px;">
       <div id="map" style="height:400px;"></div>
       <div id="map-side-bar">
@@ -27,17 +29,16 @@
           <div class="row">
             <div class="col-md-4">
               <label for="ddlparish">Parish: </label>
-              <?php
-					$sql = "select distinct parish from ecc_gis_data order by parish";
-					$result = $conn->query($sql);
-				?>
+             
 				<select name='parishes' id='ddlparish' class='form-control' onchange='getParish(this.form)'>
 				<option value=''>All</option>
-				
-				<?php
+				 <?php
+					$sql = "select parish_id, parish_name from parishes order by parish_name";
+					$result = $conn->query($sql);
+
 					while($row = $result->fetch_assoc()) {
-						$selected = ($row['parish'] == @$qs) ? "selected" : "";
-						echo "<option ".$selected." value='".$row['parish']."'>".$row['parish']."</option>";
+						$selected = ($row['parish_id'] == @$qs) ? "selected" : "";
+						echo "<option ".$selected." value='".$row['parish_id']."'>".$row['parish_name']."</option>";
 					}
 				?>
 				</select>
@@ -47,57 +48,60 @@
             </div>
             <div class="col-md-4">
               <label for="ddlconstituency">Constituency: </label>
-              <?php
+              	<select name='Genotssype' id='ddlconstituency' class='form-control' onchange='getConstituency(this.form)'>
+				<option value=''>All</option>
+				<?php
 
-				$qry = (isset($qs) and strlen($qs) > 0) ? "and parish like '".$qs."%' order by constituency" : "";
-				$sql = "select distinct constituency from ecc_gis_data where longitude is not null and latitude is not null ".$qry;
-				$result = $conn->query($sql);
-				
-				echo "<select name='Genotssype' id='ddlconstituency' class='form-control' onchange=\"getConstituency(this.form)\">";
-				echo "<option value=''>All</option>";
+					$qry = (isset($qs) and strlen($qs) > 0) ? " where con_parish_id = ".$qs." order by constituency" : "";
+					$sql = "select con_id, constituency from constituencies".$qry;
+					$result = $conn->query($sql);
 
-				while($row = $result->fetch_assoc()) {
-					$selected = ($row['constituency'] == @$cs) ? "selected" : "";
-					echo "<option ".$selected ." value='".$row['constituency']."'>".$row['constituency']."</option>";
-				}
-				echo "</select>";
-				
-				mysqli_free_result($result);
-		
-			?>
+					while($row = $result->fetch_assoc()) {
+						$selected = ($row['con_id'] == @$cs) ? "selected" : "";
+						echo "<option ".$selected ." value='".$row['con_id']."'>".$row['constituency']."</option>";
+					}
+				?>
+				</select>
+				<?php mysqli_free_result($result); ?>
               <!-- insert filter links --> 
             </div>
             <div class="col-md-4">
               <label for="ddlcommunity">Community: </label>
+              <select name='Genotssype' id='ddlcommunity' class='form-control' onchange="getCommunity(this.form)">
+				<option value=''>All</option>";
               <?php
 
-				$qry1 = (isset($qs) and strlen($qs) > 0) ? " and parish like '".$qs."%'" : "";
-				$qry2 = (isset($cs) and strlen($cs) > 0) ? " and constituency like '".$cs."%'" : "";
-				$sql = "select distinct community from ecc_gis_data where longitude is not null and latitude is not null ". 
-				$qry1 . $qry2. " order by community";
+				$qry1 = (isset($qs) and strlen($qs) > 0) ? " and com_parish_id = ".$qs : "";
+				$qry2 = (isset($cs) and strlen($cs) > 0) ? " and com_con_id = ".$cs : "";
+				$sql = "select distinct (community), comm_id from communities where (com_parish_id is not null ". $qry1 .") and (com_con_id is not null ". $qry2. ") order by community";
 				
 				$result = $conn->query($sql);
 				
-				echo "<select name='Genotssype' id='ddlcommunity' class='form-control' onchange=\"getCommunity(this.form)\">";
-				echo "<option value=''>All</option>";
 				while($row = $result->fetch_assoc()) {
-					$selected = ($row['community'] == @$cm) ? "selected" : "";
-					echo "<option ".$selected ." value='".$row['community']."'>".$row['community']."</option>";
+					$selected = ($row['comm_id'] == @$cm) ? "selected" : "";
+					echo "<option ".$selected ." value='".$row['comm_id']."'>".$row['community']."</option>";
 				}
-				echo "</select>";
 				
-				mysqli_free_result($result);
-		
 			?>
+			</select>
+			<?php mysqli_free_result($result); ?>
               <!-- insert filter links --> 
             </div>
           </div>
         </div>
         <div class="row">
         <?php
-			$sql = "select gis_id, eccid, eci_name, address, parish, telephone, facility_type, longitude, latitude, latlng from ecc_gis_data where longitude is not null and latitude is not null and parish like '".$qs."%' and constituency like '".$cs."%'  and community like '".$cm."%' order by eci_name";
+        	//if options from the dropdowns are selected use value along with related sql or pass an empty string
+        	$qryParish = (isset($qs) and strlen($qs) > 0) ? " and eci_parish_id = ".$qs : "";
+        	$qryCon = (isset($cs) and strlen($cs) > 0) ? " and eci_con_id = ".$cs : "";
+        	$qryComm = (isset($cm) and strlen($cm) > 0) ? " and eci_community_id = ".$cm : "";
+
+			$sql = "select gis_id, eccid, eci_name, address, parish, telephone, facility_type, latlng, inspection_report from ecc_gis_data where latlng is not null ".$qryParish ." ". $qryCon ." ". $qryComm." order by eci_name";
+
 			$result = $conn->query($sql);	
+
 			while($row = $result->fetch_assoc()) {
+				//separate the latitude and longitude and pass to google maps API
 				$lat = (explode(",", $row['latlng']))[0];
 				$lng = (explode(",", $row['latlng']))[1];
 
@@ -107,17 +111,19 @@
             <div style="float:left; height:25px;"> <img src="img/blue.png"> </div>
             <a href="#" class="map-link" style="font-size:0.8em" zoom="15" longitude="<?=$lng ?>" latitude="<?=$lat ?>">
             <?=$row['eci_name'] ?>
-            <!-- , <?=$parish ?> --></a> </span>
+            <!-- , <?=(isset($parish))? $parish : ''; ?> --></a> </span>
             <div class="info-box" style="display:none">
               <p style="font-size:12px; color:#000;"><b>
                 <?=$row['eci_name'] ?>
                 </b><br />
-                <i>
-                <?=$row['facility_type'] ?>
-                </i><br />
+                <!-- <i> -->
+                <?php //$row['facility_type'] ?>
+                <!--</i><br />-->
                 <?=$row['address'] ?>
                 <br />
                 <?=$row['telephone'] ?>
+                <br /><br />
+                <a href="<?=$row['inspection_report'] ?>"><u>Inspection Report</u></a>
               </p>
             </div>
           </div>
@@ -190,12 +196,7 @@
 </script> 
 <script type="text/javascript"> 
   $(document).ready(function(){
-	  var color;
-	  // $('#map').jMapping({location_selector: '.map-location:visible'});
-	  $(document).bind('init_finished.quickpaginate', function(e){
-		  //$('#map').jMapping({location_selector: '.map-location:visible'});
-			
-			$('#map').jMapping({
+  		$('#map').jMapping({
 				map_config: {
 					navigationControlOptions: {
 						style: google.maps.NavigationControlStyle.DEFAULT
@@ -207,21 +208,45 @@
 				category_icon_options: function(category){
 					color = (category == "Basic School") ? "red" : "blue";
 					return new google.maps.MarkerImage('img/'+ color +'pin.png');
-			    }
+				
+				}
 		  });
-
+	  console.log('ready');
+	  $(document).on('init_finished.quickpaginate', function(e){
+		// $('#map').jMapping({location_selector: '.map-location:visible'});
+			var color;
+			
+			/*$('#map').jMapping({
+				map_config: {
+					navigationControlOptions: {
+						style: google.maps.NavigationControlStyle.DEFAULT
+					},
+					mapTypeId: google.maps.MapTypeId.ROADMAP,
+					zoom: 7
+				},
+				location_selector: '.map-location:visible',
+				category_icon_options: function(category){
+					color = (category == "Basic School") ? "red" : "blue";
+					return new google.maps.MarkerImage('img/'+ color +'pin.png');
+				
+				}
+		  });*/
+			console.log('bind');
   	});
- 
-  	$(document).bind('paginate.quickpaginate', function(e, direction, page){
+  
+  	$(document).on('paginate.quickpaginate', function(e, direction, page){
 		 	$('#map').jMapping('update');
+		 	console.log('update');
 		});
   
   	$('#map-side-bar .map-location').quickpaginate({
     	perpage: 16, showcounter: false,
     	pager: $("p#pagination")
   	});
+ 
+});
 
-  });
+ 
 </script>
 </body>
 </html>
