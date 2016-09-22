@@ -185,10 +185,16 @@ $eccgis = 'ecc_gis_data';
 		if(isset($qs) and strlen($qs) > 0){
 			//echo "document.f1.subcat.disabled = false;";
 			echo "$('#ddlconstituency').removeAttr('disabled');";
-			echo "$('#ddlcommunity').removeAttr('disabled');";
 			}else{
 			//echo "document.f1.subcat.disabled = true;";
 			echo "$('#ddlconstituency').attr('disabled', 'disabled');";
+		}
+
+		if(isset($cs) and strlen($cs) > 0){
+			//echo "document.f1.subcat.disabled = false;";
+			echo "$('#ddlcommunity').removeAttr('disabled');";
+			}else{
+			//echo "document.f1.subcat.disabled = true;";
 			echo "$('#ddlcommunity').attr('disabled', 'disabled');";
 		}
 	?>
